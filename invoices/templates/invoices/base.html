@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>{% block title %}Purchase Orders{% endblock %}</title>
+
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    .table-wrap { overflow-x:auto; }
+    .modal-backdrop { background: rgba(0,0,0,0.5); }
+  </style>
+
+ 
+  <meta name="csrf-token" content="{{ csrf_token }}">
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800">
+
+  <nav class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16 items-center">
+        <div class="flex items-center gap-4">
+          <a href="/" class="text-xl font-semibold text-sky-600">PO Portal</a>
+          <a href="{% url 'dashboard' %}" class="text-sm text-slate-600 hover:text-slate-900">Dashboard</a>
+          <a href="{% url 'upload' %}" class="text-sm text-slate-600 hover:text-slate-900">Upload PO</a>
+        </div>
+        <div class="text-sm text-slate-500">
+          <span>Logged in as: <strong>{% if request.user.is_authenticated %}{{ request.user.username }}{% else %}Guest{% endif %}</strong></span>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-7xl mx-auto p-4">
+    {% block content %}{% endblock %}
+  </main>
+
+  
+  <div id="jsonModal" class="hidden fixed inset-0 z-50 items-center justify-center">
+    <div class="absolute inset-0 modal-backdrop"></div>
+    <div class="relative max-w-3xl w-full bg-white rounded shadow-lg p-4 z-10 mx-4">
+      <div class="flex justify-between items-center mb-2">
+        <h3 class="text-lg font-medium">Extracted JSON</h3>
+        <button id="closeModal" class="px-3 py-1 rounded bg-slate-200 hover:bg-slate-300">Close</button>
+      </div>
+      <pre id="jsonContent" class="max-h-96 overflow-auto text-sm bg-slate-50 p-3 rounded"></pre>
+    </div>
+  </div>
+
+  <script>
+    function getCsrfToken() {
+      const meta = document.querySelector('meta[name="csrf-token"]');
+      return meta ? meta.getAttribute('content') : '';
+    }
+
+  
+    function openJsonModal(json) {
+      document.getElementById('jsonContent').textContent = JSON.stringify(json, null, 2);
+      const modal = document.getElementById('jsonModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+    function closeJsonModal() {
+      const modal = document.getElementById('jsonModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+    document.getElementById && document.getElementById('closeModal')?.addEventListener('click', closeJsonModal);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeJsonModal(); });
+  </script>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>
