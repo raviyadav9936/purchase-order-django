@@ -1,0 +1,6 @@
+Django
+djangorestframework
+PyMuPDF
+pytesseract
+Pillow
+python-dateutil
