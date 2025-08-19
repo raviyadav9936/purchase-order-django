@@ -3,94 +3,19 @@
 
 {% block content %}
 <div class="bg-white p-6 rounded shadow">
-  <h1 class="text-2xl font-semibold mb-2">Upload Purchase Order (PDF / Image)</h1>
-  <p class="text-sm text-slate-500 mb-4">Drop file here or click to choose. Supported: PDF, PNG, JPG.</p>
+  <h1 class="text-2xl font-semibold mb-2">Upload Purchase Order</h1>
+  <p class="text-sm text-slate-500 mb-4">Choose a PDF or Image file.</p>
 
-  <div id="dropzone" class="border-2 border-dashed border-slate-200 rounded p-6 text-center cursor-pointer hover:border-slate-300">
-    <input id="fileInput" name="file" type="file" accept=".pdf,image/*" class="hidden" />
-    <div id="dropText" class="text-slate-600">
-      <svg class="mx-auto mb-2 h-8 w-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16v-4a4 4 0 018 0v4M5 20h14" />
-      </svg>
-      <div class="font-medium">Click or drop file to upload</div>
-      <div class="text-xs mt-1">File will be processed via OCR and parsed automatically.</div>
-    </div>
-  </div>
+  <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="file" name="file" accept=".pdf,image/*" class="block mb-4" />
+    <button type="submit" class="px-4 py-2 bg-sky-600 text-white rounded hover:bg-sky-700">
+      Upload
+    </button>
+  </form>
 
-  <div class="mt-4 flex items-center gap-3">
-    <button id="uploadBtn" class="px-4 py-2 bg-sky-600 text-white rounded hover:bg-sky-700">Upload</button>
-    <a href="{% url 'dashboard' %}" class="text-sm text-slate-600">Back to Dashboard</a>
-  </div>
-
-  <div id="progressWrap" class="mt-4 hidden">
-    <div class="w-full bg-slate-100 rounded h-3 overflow-hidden">
-      <div id="progressBar" class="h-3 bg-sky-500 w-0"></div>
-    </div>
-    <div id="progressText" class="text-sm text-slate-500 mt-2">Uploading…</div>
-  </div>
-
-  {% if error %}<p class="mt-3 text-red-600">{{ error }}</p>{% endif %}
+  {% if error %}
+    <p class="mt-3 text-red-600">{{ error }}</p>
+  {% endif %}
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-  const dropzone = document.getElementById('dropzone');
-  const fileInput = document.getElementById('fileInput');
-  const uploadBtn = document.getElementById('uploadBtn');
-  const progressWrap = document.getElementById('progressWrap');
-  const progressBar = document.getElementById('progressBar');
-  const progressText = document.getElementById('progressText');
-
- 
-  dropzone.addEventListener('click', () => fileInput.click());
-
-
-  dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('bg-slate-50'); });
-  dropzone.addEventListener('dragleave', e => { e.preventDefault(); dropzone.classList.remove('bg-slate-50'); });
-  dropzone.addEventListener('drop', e => {
-    e.preventDefault();
-    dropzone.classList.remove('bg-slate-50');
-    const f = e.dataTransfer.files[0];
-    if (f) fileInput.files = e.dataTransfer.files;
-  });
-
-
-  uploadBtn.addEventListener('click', () => {
-    if (!fileInput.files.length) { alert('Please choose a file first.'); return; }
-    const file = fileInput.files[0];
-    const fd = new FormData();
-    fd.append('file', file);
-
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', window.location.pathname, true);
-    xhr.setRequestHeader('X-CSRFToken', getCsrfToken());
-
-    xhr.upload.onprogress = function(e) {
-      if (e.lengthComputable) {
-        const pct = Math.round((e.loaded / e.total) * 100);
-        progressWrap.classList.remove('hidden');
-        progressBar.style.width = pct + '%';
-        progressText.textContent = `Uploading — ${pct}%`;
-      }
-    };
-
-    xhr.onload = function() {
-      if (xhr.status >= 200 && xhr.status < 400) {
-      
-        window.location.href = '/';
-      } else {
-        progressText.textContent = 'Upload failed. Try again.';
-      }
-    };
-    xhr.onerror = function() {
-      progressText.textContent = 'Upload failed (network).';
-    };
-
-    xhr.send(fd);
-    progressWrap.classList.remove('hidden');
-    progressBar.style.width = '2%';
-    progressText.textContent = 'Starting…';
-  });
-</script>
 {% endblock %}

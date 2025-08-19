@@ -7,3 +7,5 @@ urlpatterns = [
     path("api/invoices/", include("invoices.urls")),
     path("", include("invoices.urls")),
 ]
+
+

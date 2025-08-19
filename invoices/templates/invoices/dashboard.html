@@ -4,89 +4,71 @@
 {% block content %}
 <div class="flex flex-col lg:flex-row gap-6">
 
+  <!-- Table Section -->
   <div class="flex-1 bg-white p-4 rounded shadow">
     <div class="flex items-center justify-between gap-4 mb-4">
       <form method="get" class="flex items-center gap-2">
-        <label class="text-sm">From: <input type="date" name="from" value="{{ request.GET.from }}" class="ml-1 border rounded px-2" /></label>
-        <label class="text-sm">To: <input type="date" name="to" value="{{ request.GET.to }}" class="ml-1 border rounded px-2" /></label>
+        <label class="text-sm">From: 
+          <input type="date" name="from" value="{{ request.GET.from }}" class="ml-1 border rounded px-2" />
+        </label>
+        <label class="text-sm">To: 
+          <input type="date" name="to" value="{{ request.GET.to }}" class="ml-1 border rounded px-2" />
+        </label>
         <button class="px-3 py-2 bg-sky-600 text-white rounded">Filter</button>
       </form>
     </div>
 
-    <table id="poTable" class="min-w-full text-sm">
+    <table class="min-w-full text-sm">
       <thead class="bg-slate-50">
         <tr>
           <th class="p-2">SR.NO</th>
           <th class="p-2">PO Number</th>
           <th class="p-2">PO Date</th>
           <th class="p-2 text-right">Total</th>
-          <th class="p-2 text-center">Actions</th>
         </tr>
       </thead>
-      <tbody id="poTbody">
+      <tbody>
         {% for o in orders %}
         <tr class="border-b">
           <td class="p-2">{{ forloop.counter }}</td>
           <td class="p-2">{{ o.po_number }}</td>
           <td class="p-2">{{ o.po_date }}</td>
           <td class="p-2 text-right">{{ o.grand_total }}</td>
-          <td class="p-2 text-center">
-            <button class="viewJsonBtn px-2 py-1 bg-slate-100 rounded" 
-                    data-json='{{ o.extracted_json|escapejs }}'>View</button>
-          </td>
         </tr>
         {% empty %}
-          <tr><td colspan="6" class="p-4 text-center">No records yet.</td></tr>
+          <tr><td colspan="4" class="p-4 text-center">No records yet.</td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 
-
+  <!-- Chart Section -->
   <div class="w-full lg:w-96 bg-white p-4 rounded shadow">
     <h3 class="font-medium mb-3">Grand Total per Day</h3>
     <canvas id="poChart" height="220"></canvas>
-  </div>
-</div>
-
-<div id="jsonModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center">
-  <div class="bg-white p-4 rounded shadow w-2/3 max-h-[80vh] overflow-auto">
-    <pre id="jsonContent" class="text-xs bg-slate-100 p-2 rounded"></pre>
-    <div class="text-right mt-2">
-      <button onclick="document.getElementById('jsonModal').classList.add('hidden')" class="px-3 py-1 bg-slate-200 rounded">Close</button>
-    </div>
   </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-  function openJsonModal(obj) {
-    document.getElementById("jsonContent").textContent = JSON.stringify(obj, null, 2);
-    document.getElementById("jsonModal").classList.remove("hidden");
-  }
-
-
-  document.querySelectorAll('.viewJsonBtn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      try {
-        const j = btn.dataset.json ? JSON.parse(btn.dataset.json) : {"note":"no json"};
-        openJsonModal(j);
-      } catch(e) {
-        alert("Error parsing JSON");
-        console.error("Invalid JSON:", btn.dataset.json);
-      }
-    });
-  });
-
-  // Chart
+  // Chart Data
   const agg = {{ agg|safe }};
   const labels = agg.map(x => x.po_date || "Unknown");
   const values = agg.map(x => x.total_per_day || 0);
+
   const ctx = document.getElementById("poChart").getContext("2d");
   new Chart(ctx, {
     type: "line",
-    data: { labels, datasets: [{ label: "Grand Total per Day", data: values, fill: true, tension: 0.3 }] },
+    data: {
+      labels,
+      datasets: [{
+        label: "Grand Total per Day",
+        data: values,
+        fill: true,
+        tension: 0.3
+      }]
+    },
     options: { scales: { y: { beginAtZero: true } } }
   });
 </script>
